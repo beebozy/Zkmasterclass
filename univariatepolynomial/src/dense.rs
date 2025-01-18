@@ -18,30 +18,34 @@ impl Polynomial {
     }
 
     fn degree(&self) -> usize {
-        self.coefficient.len()
+        self.coefficient.len()-1
     }
 }
 
 impl Point {
-    pub fn lagrange_interpolation(&self) -> Vec<f64> {
+    pub fn interpolate(&self) -> Vec<f64> {
         let n: usize = self.value.len();
+
+        // Start with an empty coefficient vector of size `n`.
         let mut coefficient = vec![0.0; n];
 
-        for (_i, &(x_i, _y_i)) in self.value.iter().enumerate() {
+        // Iterate over each point `(x_i, y_i)`.
+        for (i, &(x_i, y_i)) in self.value.iter().enumerate() {
             let mut denominator = 1.0;
             let mut basis_poly = vec![1.0];
 
-            for (_j, &(x_j, _)) in self.value.iter().enumerate() {
-                if x_i != x_j {
-                    denominator *= (x_i - x_j) as f64;
-                    basis_poly = multiply(&basis_poly, vec![-x_j as f64, 1.0]);
+            
+            for (j, &(x_j, _)) in self.value.iter().enumerate() {
+                if i != j {
+                    denominator *= x_i - x_j;
+                    basis_poly = multiply(&basis_poly, vec![-x_j, 1.0]);
                 }
             }
 
-            // Scale the basis polynomial by y_i / denom
-            let scaled_poly = scale(&basis_poly, (_y_i as f64) / denominator);
+            // Scale the basis polynomial by `y_i / denominator`.
+            let scaled_poly = scale(&basis_poly, y_i / denominator);
 
-            // Add the scaled polynomial to the result
+            // Add the scaled polynomial to the result.
             coefficient = add_poly(&coefficient, &scaled_poly);
         }
 
@@ -49,6 +53,7 @@ impl Point {
     }
 }
 
+/// Multiply two polynomials.
 fn multiply(poly1: &[f64], poly2: Vec<f64>) -> Vec<f64> {
     let mut result = vec![0.0; poly1.len() + poly2.len() - 1];
     for (i, &coeff1) in poly1.iter().enumerate() {
@@ -59,10 +64,14 @@ fn multiply(poly1: &[f64], poly2: Vec<f64>) -> Vec<f64> {
     result
 }
 
-fn scale(poly1: &[f64], x: f64) -> Vec<f64> {
-    poly1.iter().map(|&coefficient| coefficient * x).collect()
+/// Scale a polynomial by a constant.
+fn scale(poly: &[f64], x: f64) -> Vec<f64> {
+
+
+    poly.iter().map(|&coefficient| coefficient * x).collect()
 }
 
+/// Add two polynomials.
 fn add_poly(poly1: &[f64], poly2: &[f64]) -> Vec<f64> {
     let len = usize::max(poly1.len(), poly2.len());
     let mut result = vec![0.0; len];
@@ -73,3 +82,4 @@ fn add_poly(poly1: &[f64], poly2: &[f64]) -> Vec<f64> {
     }
     result
 }
+
