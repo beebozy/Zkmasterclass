@@ -131,7 +131,7 @@ where
 
         for i in 0..n {
             let (xi, yi) = self.values[i];
-            let mut numerator = Polynomial::new(vec![T::from(0)]);
+            let mut numerator = Polynomial::new(vec![T::from(1)]);
             let mut denominator = T::from(1);
 
             for j in 0..n {
