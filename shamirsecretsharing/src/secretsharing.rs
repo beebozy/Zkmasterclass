@@ -1,8 +1,7 @@
 
 
 
-mod dense;
-
+use crate::dense::{Polynomial, Point};
 use std::result;
 
 use rand::{thread_rng, Rng};
@@ -26,14 +25,14 @@ fn generate_secret_polynomial(secret: f64, threshold: usize, x: f64) -> Vec<f64>
     }
 
     // Create a Point instance and interpolate
-    let point = dense::Point::new(result);
+    let point = crate::dense::Point::new(result);
     let answer = point.interpolate();
 
     // Return the interpolated coefficients
     answer
 }
 
-fn generate_sharing_point(coefficient: dense::Polynomial, threshold: usize, total_no_of_point:usize)->dense::Point{
+fn generate_sharing_point(coefficient: crate::dense::Polynomial, threshold: usize, total_no_of_point:usize)->crate::dense::Point{
 let mut answer: Vec<(f64,f64)>= Vec::new();
     for i in 0 ..total_no_of_point{
         let random_x= rand::thread_rng().gen_range(0..100);
@@ -42,10 +41,10 @@ let mut answer: Vec<(f64,f64)>= Vec::new();
 
     }
 
-    dense::Point::new(answer)
+    crate::dense::Point::new(answer)
 }
 
-fn recreate_polynomial(threshold: usize, points: dense::Point) -> Vec<f64> {
+fn recreate_polynomial(threshold: usize, points: crate::dense::Point) -> Vec<f64> {
     // Collect the points into a vector of tuples (x, y)
     let result: Vec<(f64, f64)> = points
         .value
@@ -56,14 +55,14 @@ fn recreate_polynomial(threshold: usize, points: dense::Point) -> Vec<f64> {
 
     
     
-    let point_result = dense::Point::new(result);
+    let point_result = crate::dense::Point::new(result);
 
 
     point_result.interpolate()
 }
 
 
-fn generate_secret(coefficient: dense::Polynomial, x:usize)->f64{
+fn generate_secret(coefficient: crate::dense::Polynomial, x:usize)->f64{
     coefficient.evaluate(x as f64) //Generate the secret at a point
 }
 
@@ -72,7 +71,7 @@ fn generate_secret(coefficient: dense::Polynomial, x:usize)->f64{
 #[cfg(test)]
 mod tests {
     use super::*;
-    use dense::{Point, Polynomial}; // Use the actual `dense` module from the main codebase
+    use crate::dense::{Point, Polynomial}; // Use the actual `dense` module from the main codebase
     use rand::Rng;
 
     #[test]
@@ -135,6 +134,3 @@ mod tests {
 
 
 
-fn main(){
-
-}
