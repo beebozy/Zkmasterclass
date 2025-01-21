@@ -2,51 +2,58 @@
 
 
 use crate::dense::{Polynomial, Point};
+use ark_bn254::Fq;
+use ark_ff::Field;
+use  ark_ff;
 use std::result;
+use ark_std::rand::rngs::StdRng;
 
-use rand::{thread_rng, Rng};
-
-
-
+use rand::{Rng, SeedableRng};
 
 
-fn generate_secret_polynomial(secret: f64, threshold: usize, x: f64) -> Vec<f64> {
+
+
+
+fn generate_secret_polynomial(secret: Fq, threshold: usize, x: Fq) -> Vec<Fq> {
     // Create a vector to hold the points
-    let mut result: Vec<(f64, f64)> = Vec::new();
+    let mut result: Vec<(Fq, Fq)> = Vec::new();
 
     // Add the secret as the first point
     result.push((x, secret));
 
+    let mut rng =StdRng::from_entropy();
     // Generate random points
     for _ in 0..threshold -1 {
-        let random_x = rand::thread_rng().gen_range(0..100) as f64;
-        let random_y = rand::thread_rng().gen_range(0..100) as f64;
+        let random_x: Fq = rng.gen();
+        let random_y: Fq= rng.gen();
         result.push((random_x, random_y));
     }
 
     // Create a Point instance and interpolate
     let point = crate::dense::Point::new(result);
-    let answer = point.interpolate();
+    let answer: Vec<Fq> = point.interpolate();
 
     // Return the interpolated coefficients
     answer
 }
 
-fn generate_sharing_point(coefficient: crate::dense::Polynomial, threshold: usize, total_no_of_point:usize)->crate::dense::Point{
-let mut answer: Vec<(f64,f64)>= Vec::new();
+fn generate_sharing_point(coefficient: crate::dense::Polynomial<Fq>, threshold: usize, total_no_of_point:usize)->crate::dense::Point<Fq>{
+let mut answer: Vec<(Fq,Fq)>= Vec::new();
+
+let mut rng:StdRng= StdRng::from_entropy();
     for i in 0 ..total_no_of_point{
-        let random_x= rand::thread_rng().gen_range(0..100);
-        let y= coefficient.evaluate(random_x as f64);
-        answer.push((random_x as f64, y));
+        let random_x: Fq= rng.gen();
+        let  y:Fq= coefficient.evaluate(random_x );
+        answer.push((random_x , y));
 
     }
 
     crate::dense::Point::new(answer)
 }
 
-fn recreate_polynomial(threshold: usize, points: crate::dense::Point) -> Vec<f64> {
+fn recreate_polynomial(threshold: usize, points: crate::dense::Point<Fq>) -> Vec<Fq> {
     // Collect the points into a vector of tuples (x, y)
-    let result: Vec<(f64, f64)> = points
+    let result: Vec<(Fq, Fq)> = points
         .value
         .iter()
         .take(threshold) // Limit to the threshold number of points
@@ -62,8 +69,8 @@ fn recreate_polynomial(threshold: usize, points: crate::dense::Point) -> Vec<f64
 }
 
 
-fn generate_secret(coefficient: crate::dense::Polynomial, x:usize)->f64{
-    coefficient.evaluate(x as f64) //Generate the secret at a point
+fn generate_secret(coefficient: crate::dense::Polynomial<Fq>, x:Fq)->Fq{
+    coefficient.evaluate(Fq::from(x)) //Generate the secret at a point
 }
 
 
@@ -76,9 +83,9 @@ mod tests {
 
     #[test]
     fn test_generate_secret_polynomial() {
-        let secret = 42.0;
+        let secret = Fq::from (42);
         let threshold = 3;
-        let x = 0.0;
+        let x = Fq::from(0);
 
         let coefficients = generate_secret_polynomial(secret, threshold, x);
 
@@ -89,7 +96,7 @@ mod tests {
 
     #[test]
     fn test_generate_sharing_point() {
-        let coefficients = Polynomial::new(vec![42.0, 5.0, 3.0]);
+        let coefficients = Polynomial::new(vec![Fq::from(42),Fq::from( 5),Fq::from(3)]);
         let threshold = 3;
         let total_no_of_points = 5;
 
@@ -108,7 +115,7 @@ mod tests {
     #[test]
     fn test_recreate_polynomial() {
         let threshold = 3;
-        let points = Point::new(vec![(0.0, 42.0), (1.0, 50.0), (2.0, 68.0)]);
+        let points = Point::new(vec![(Fq::from(0), Fq::from(42)), (Fq::from(1), Fq::from(50)), (Fq::from(2), Fq::from(68))]);
 
         let coefficients = recreate_polynomial(threshold, points);
 
@@ -116,18 +123,18 @@ mod tests {
         assert_eq!(coefficients.len(), threshold);
 
         // Example check for interpolation correctness (replace with actual checks based on logic)
-        assert_eq!(coefficients[0], 42.0);
+        assert_eq!(coefficients[0], Fq::from(42));
     }
 
     #[test]
     fn test_generate_secret() {
-        let coefficients = Polynomial::new(vec![42.0, 5.0, 3.0]);
-        let x = 2;
+        let coefficients = Polynomial::new(vec![Fq::from(42),Fq::from(5), Fq::from(3)]);
+        let x = Fq::from(2);
 
         let secret = generate_secret(coefficients, x);
 
         // Verify the result matches the polynomial evaluation
-        let expected = 42.0 + 5.0 * x as f64 + 3.0 * (x as f64).powi(2);
+        let expected = Fq::from(42) + Fq::from(5) * x  + Fq::from(3) * x .pow(&[2 as u64]);
         assert_eq!(secret, expected);
     }
 }
