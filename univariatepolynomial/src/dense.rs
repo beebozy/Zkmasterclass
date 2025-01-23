@@ -1,5 +1,6 @@
 #[warn(dead_code)]
 
+
 pub struct Polynomial {
     pub coefficient: Vec<usize>,
 }

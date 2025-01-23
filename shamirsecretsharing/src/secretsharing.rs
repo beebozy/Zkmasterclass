@@ -38,9 +38,9 @@ fn generate_secret_polynomial(secret: Fq, threshold: usize, x: Fq) -> Vec<Fq> {
 }
 
 fn generate_sharing_point(coefficient: crate::dense::Polynomial<Fq>, threshold: usize, total_no_of_point:usize)->crate::dense::Point<Fq>{
-let mut answer: Vec<(Fq,Fq)>= Vec::new();
+    let mut answer: Vec<(Fq,Fq)>= Vec::new();
 
-let mut rng:StdRng= StdRng::from_entropy();
+    let mut rng:StdRng= StdRng::from_entropy();
     for i in 0 ..total_no_of_point{
         let random_x: Fq= rng.gen();
         let  y:Fq= coefficient.evaluate(random_x );

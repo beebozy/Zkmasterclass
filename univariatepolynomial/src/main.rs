@@ -77,6 +77,7 @@ fn main() {
 
  use std::ops::{Add, Mul, Sub, Div};
 use num_traits::{FromPrimitive, Pow};
+use ark_ff::PrimeField;
 
 #[derive(Debug, PartialEq)]
 struct Polynomial<T> {
@@ -193,9 +194,12 @@ T: Copy + Add<Output = T> + Mul<Output = T> + Default + num_traits::Pow<u32, Out
     }
 }
 
+// fq we need concrete value;
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    use ark_bn254::Fq;
 
     #[test]
     fn test_polynomial_degree() {
@@ -221,7 +225,7 @@ mod tests {
         // let interpolated = points.interpolate();
 
         // assert_eq!(interpolated,Polynomial::new(vec![0,0,2]));
-        // You can add an expected Polynomial result here for verification.
+        
     }*/
 } 
 fn main(){}
