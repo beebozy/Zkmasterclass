@@ -52,18 +52,25 @@ impl<Fq: PrimeField> Multilinear<Fq> {
     }
 
     pub fn evaluate(&self, variables: Vec<Option<Fq>>) -> Self {
-        let mut current_poly = self.clone(); 
-
+        
+        let mut current_poly = self.clone();
+        let mut skipped = 0; 
+    
         for (i, &var) in variables.iter().enumerate() {
             if let Some(value) = var {
-               
-                current_poly = current_poly.partial_evaluate((value, i));
-            }
-            
-        }
+                
+                current_poly = current_poly.partial_evaluate((value, i - skipped));
 
-        current_poly 
-}
+                skipped += 1;
+            } else {
+               
+               skipped+=1;
+                
+            }
+        }
+    
+        current_poly
+    }
 
 }
 
