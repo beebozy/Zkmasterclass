@@ -1,6 +1,7 @@
 use ark_ff::Field;
 use ark_ff::PrimeField;
 
+#[derive(Clone,PartialEq,Debug)] // Derive Clone to allow cloning the struct
 struct Multilinear<Fq: PrimeField> {
     values: Vec<Fq>,
 }
@@ -49,10 +50,28 @@ impl<Fq: PrimeField> Multilinear<Fq> {
 
         Self::new(&new_values)
     }
+
+    pub fn evaluate(&self, variables: Vec<Option<Fq>>) -> Self {
+        let mut current_poly = self.clone(); 
+
+        for (i, &var) in variables.iter().enumerate() {
+            if let Some(value) = var {
+               
+                current_poly = current_poly.partial_evaluate((value, i));
+            }
+            
+        }
+
+        current_poly 
 }
+
+}
+
 
 #[cfg(test)]
 mod tests {
+    use std::result;
+
     use super::*;
     use ark_bn254::Fq; // Using BN254 scalar field as an example
     use ark_ff::UniformRand;
@@ -64,4 +83,33 @@ fn test_multilinear_new_invalid_input() {
     let coeff = vec![Fq::from(1), Fq::from(2), Fq::from(3)]; // Length = 3 (not a power of two)
     let _ = Multilinear::new(&coeff);
 }
+
+#[test]
+
+fn test_partially_evaluate(){
+
+    let coeff: Vec<Fq>= vec![Fq::from(0),Fq::from(0),Fq::from(0),Fq::from(2)];
+    let polynomial= Multilinear::new(&coeff);
+    let partial_evaluation= polynomial.partial_evaluate((Fq::from(2),0));
+    let expected_values = vec![Fq::from(0), Fq::from(4)];
+        let expected_polynomial = Multilinear::new(&expected_values);
+
+        assert_eq!(partial_evaluation, expected_polynomial);
+    }
+
+    #[test]
+
+    fn test_evaluate() {
+        let coeff: Vec<Fq> = vec![Fq::from(0), Fq::from(0), Fq::from(0), Fq::from(2)];
+        let polynomial = Multilinear::new(&coeff);
+    
+        
+        let variables = vec![Some(Fq::from(2)), Some(Fq::from(1))];
+        let result = polynomial.evaluate(variables);
+    
+        
+        let final_result = vec![Fq::from(4)]; // Use a Vec instead of an array
+        assert_eq!(result, Multilinear::new(&final_result));
+    }
 }
+
