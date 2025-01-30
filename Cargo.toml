@@ -1,0 +1,2 @@
+[workspace]
+members = [ "fibonnacci","multilinear", "shamirsecretsharing", "sumcheck", "univariatepolynomial"]

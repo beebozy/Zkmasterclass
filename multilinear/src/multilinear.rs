@@ -2,7 +2,7 @@ use ark_ff::Field;
 use ark_ff::PrimeField;
 
 #[derive(Clone,PartialEq,Debug)] // Derive Clone to allow cloning the struct
-struct Multilinear<Fq: PrimeField> {
+pub struct Multilinear<Fq: PrimeField> {
     values: Vec<Fq>,
 }
 
@@ -16,7 +16,7 @@ impl<Fq: PrimeField> Multilinear<Fq> {
         }
     }
 
-    fn get_flipped_or_bit(&self, position_to_flip: usize, number_to_flip: usize) -> usize {
+    pub fn get_flipped_or_bit(&self, position_to_flip: usize, number_to_flip: usize) -> usize {
         let power = self.values.len().ilog2() as usize - 1 - position_to_flip;
         number_to_flip | (1 << power)
     }
