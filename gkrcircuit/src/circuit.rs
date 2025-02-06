@@ -1,97 +1,105 @@
+use ark_ff::PrimeField;
+use ark_bn254::Fr; // Example finite field
+use std::marker::PhantomData;
 
-use ark_ff::PrimeField::{Zero, One};
-
-use ark_bn254;
-
-//
-enum Operations{
-    Add, 
-    Mul
+enum Operations {
+    Add,
+    Mul,
 }
 
-struct Gate<F:PrimeField>{
-
-    leftInput: u64,
-    rightInput: u64, 
-    output:u64,
-    ops: Operations
+struct Gate<F: PrimeField> {
+    left_input: usize,
+    right_input: usize,
+    output: usize,
+    ops: Operations,
+    _field: PhantomData<F>, // This prevents the unused type parameter error
 }
 
-struct Layers<F:PrimeField>{
-    gates: Vec<Gate>, 
-    
-}
-
-struct Circuit<F:PrimeField>{
-    layers: Vec<Layers>,
-    //output: Vec<F>
-}
-
-impl Gate<F: PrimeField>{
-    fn new(leftInput:u64, rightInput:u64, output:F, ops: Operations)->Self{
-        Self{leftInput, rightInput, output, ops}
+impl<F: PrimeField> Gate<F> {
+    fn new(left_input: usize, right_input: usize, output: usize, ops: Operations) -> Self {
+        Self {
+            left_input,
+            right_input,
+            output,
+            ops,
+            _field: PhantomData, // Required to satisfy the generic parameter
+        }
     }
 
-    fn evaluate(&self, inputs: Vec<F>)->F{
-        match self.ops{
-            Operations::Add =>inputs[self.0] + inputs[self.1],
-            Operations::Mul =>inputs[self.0] *inputs[self.1]
-            
+    fn evaluate(&self, inputs: &mut Vec<F>) {
+        let result = match self.ops {
+            Operations::Add => inputs[self.left_input] + inputs[self.right_input],
+            Operations::Mul => inputs[self.left_input] * inputs[self.right_input],
+        };
+
+        if self.output >= inputs.len() {
+            inputs.push(result);
+        } else {
+            inputs[self.output] = result;
         }
     }
 }
 
-impl Layers<F:PrimeField>{
-
-    fn new(gates: Vec<Gate<f>>)->Self{
-        
-       Self{gates}
-    }
-
-    fn evaluate(& mut self, input_element: Vec<F>)->Vec<F>{
-       // self::new();
-             self.gates().iter().map(|gate| gate.evaluate(input_element)).collect();
-// this should actually step by 2
-// pick any two indexes
-
-
+struct Layer<F: PrimeField> {
+    gates: Vec<Gate<F>>,
 }
 
-impl Circuit<F:PrimeField>{
-    fn new(layers: Vec<Layers>)->Self{
-        Self{layers}
+impl<F: PrimeField> Layer<F> {
+    fn new(gates: Vec<Gate<F>>) -> Self {
+        Self { gates }
     }
 
-    fn evaluate(&self, input_element:Vec<F>)->Vec<F>{
-
-        //let new_circuit= Circuit::new();
-
-        let values= input_element;
-        
-        for layers in self.layers.iter(){
-       
-            let result = Vec::new();
-
-            for new_gate in layers.gates.iter(){
-               result.push(values[new_gate].evaluate());
-                
-            }
-
-           // println!("The result for this layer is {}", result) 
-            values= result;
-
+    fn evaluate(&self, inputs: &mut Vec<F>) {
+        for gate in &self.gates {
+            gate.evaluate(inputs);
         }
+    }
+}
 
-        values
+struct Circuit<F: PrimeField> {
+    layers: Vec<Layer<F>>,
+}
 
-
-        /*layers.gate([input element]).map(|| {
-
-
-        }) */
+impl<F: PrimeField> Circuit<F> {
+    fn new(layers: Vec<Layer<F>>) -> Self {
+        Self { layers }
     }
 
-}
+    fn evaluate(&self, mut input_elements: Vec<F>) -> Vec<F> {
+        for layer in &self.layers {
+            layer.evaluate(&mut input_elements);
+        }
+        input_elements
+    }
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
 
+    #[test]
+    fn test_circuit() {
+        let a = Fr::from(1u64);
+        let b = Fr::from(2u64);
+        let c = Fr::from(3u64);
+        let d = Fr::from(4u64);
+        let  input_elements = vec![a, b, c, d];
+
+        // First layer: Multiplication and Addition
+        let gate1 = Gate::<Fr>::new(0, 1, 4, Operations::Mul); // 1 * 2 = 2 → index 4
+        let gate2 = Gate::<Fr>::new(2, 3, 5, Operations::Add); // 3 + 4 = 7 → index 5
+
+        let layer1 = Layer::new(vec![gate1, gate2]);
+
+        // Second layer: Addition
+        let gate3 = Gate::<Fr>::new(4, 5, 6, Operations::Add); // 2 + 7 = 9 → index 6
+
+        let layer2 = Layer::new(vec![gate3]);
+
+        let circuit = Circuit::new(vec![layer1, layer2]);
+
+        let result = circuit.evaluate(input_elements);
+
+        assert_eq!(result[6], Fr::from(9u64));
+    }
+}
