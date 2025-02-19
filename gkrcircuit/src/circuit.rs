@@ -189,6 +189,7 @@ concatenate_string.push_str(&input.to_string());
     }
 
 
+    fn Fbc(&mut self)->Vec<F>{}
     // fn add_polynomial_or_mulpolynomial(&self)-bool{
     //     let n = self.len();
 
