@@ -446,6 +446,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "sum_check"
+version = "0.1.0"
+
+[[package]]
 name = "sumcheck"
 version = "0.1.0"
 dependencies = [

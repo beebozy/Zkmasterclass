@@ -1,2 +1,2 @@
 [workspace]
-members = [ "fibonnacci", "gkrcircuit","multilinear", "shamirsecretsharing", "sumcheck", "univariatepolynomial"]
+members = [ "fibonnacci", "gkrcircuit","multilinear", "shamirsecretsharing", "sum_check", "sumcheck", "univariatepolynomial"]
